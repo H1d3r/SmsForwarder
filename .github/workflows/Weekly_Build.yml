@@ -50,10 +50,10 @@ jobs:
           # 输出找到的文件列表
           echo "Found APK files: $artifact_files"
           
-          # 将文件列表写入环境变量文件
-          echo "ARTIFACT_FILES=(${artifact_files})" >> $GITHUB_ENV
-          # 将不带路径的文件名列表写入环境变量文件
-          echo "ARTIFACT_NAMES=($(basename -a ${artifact_files[@]}))" >> $GITHUB_ENV
+          # 将文件列表写入环境变量文件，使用换行符分隔
+          echo "ARTIFACT_FILES=${artifact_files//$'\n'/\\n}" >> $GITHUB_ENV
+          # 将不带路径的文件名列表写入环境变量文件，使用换行符分隔
+          echo "ARTIFACT_NAMES=$(basename -a ${artifact_files[@]//$'\n'/\\n})" >> $GITHUB_ENV
           
           # 逐个上传文件至 Artifacts
           for file in "${artifact_files[@]}"; do
@@ -67,5 +67,5 @@ jobs:
         uses: actions/upload-artifact@v3
         with:
           name: ${{ env.ARTIFACT_NAMES }}  # 使用不带路径的文件名
-          path: ${{ env.ARTIFACT_FILES[*] }}  # 使用带路径的文件列表
+          path: ${{ env.ARTIFACT_FILES }}  # 使用带路径的文件列表
           if-no-files-found: error
