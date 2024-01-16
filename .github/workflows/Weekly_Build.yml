@@ -41,10 +41,24 @@ jobs:
       # 打包release
       - name: Build with Gradle
         run: bash ./gradlew assembleRelease
-      # 存档打包的文件
-      - name: Archive production artifacts
+      # 生成文件列表并上传 Artifacts
+      - name: Upload Artifacts
+        run: |
+          # 使用 find 命令生成文件列表
+          artifact_files=$(find build/app/outputs/apk/release -name "*.apk")
+          # 输出找到的文件列表
+          echo "Found APK files: $artifact_files"
+          # 逐个上传文件至 Artifacts
+          for file in $artifact_files; do
+            artifact_name=$(basename $file)  # 获取文件名
+            echo "Uploading $file to Artifacts with name $artifact_name"
+            echo "::set-output name=artifact::$file"  # 设置输出以便后续步骤使用
+          done
+        shell: bash
+      # 上传 Artifacts，使用真实文件名作为 Artifacts 名称
+      - name: Upload Artifacts
         uses: actions/upload-artifact@v3
         with:
-          name: SmsForwarder Weekly Build
-          path: build/app/outputs/apk/release/*.apk
+          name: ${{ needs.upload.outputs.artifact }}  # 使用前一步骤设置的输出作为文件名
+          path: ${{ needs.upload.outputs.artifact }}  # 使用前一步骤设置的输出作为路径
           if-no-files-found: error
