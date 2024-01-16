@@ -67,5 +67,5 @@ jobs:
         uses: actions/upload-artifact@v3
         with:
           name: ${{ env.ARTIFACT_NAMES }}  # 使用不带路径的文件名
-          path: ${{ env.ARTIFACT_FILES[@] }}  # 使用带路径的文件列表
+          path: ${{ env.ARTIFACT_FILES[*] }}  # 使用带路径的文件列表
           if-no-files-found: error
