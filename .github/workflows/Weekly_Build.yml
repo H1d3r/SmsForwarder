@@ -46,19 +46,26 @@ jobs:
         run: |
           # 使用 find 命令生成文件列表
           artifact_files=$(find build/app/outputs/apk/release -name "*.apk")
+          
           # 输出找到的文件列表
           echo "Found APK files: $artifact_files"
+          
+          # 将文件列表写入环境变量文件
+          echo "ARTIFACT_FILES=$artifact_files" >> $GITHUB_ENV
+          # 将不带路径的文件名列表写入环境变量文件
+          echo "ARTIFACT_NAMES=$(basename -a $artifact_files)" >> $GITHUB_ENV
+          
           # 逐个上传文件至 Artifacts
           for file in $artifact_files; do
-            artifact_name=$(basename $file)  # 获取文件名
+            artifact_name=$(basename $file)  # 获取文件名（不包含路径）
             echo "Uploading $file to Artifacts with name $artifact_name"
-            echo "::set-output name=artifact::$file"  # 设置输出以便后续步骤使用
+            echo "$file" >> $GITHUB_ENV  # 将每个文件路径追加到环境变量文件
           done
         shell: bash
-      # 上传 Artifacts，使用真实文件名作为 Artifacts 名称
+      # 上传 Artifacts，使用真实文件名作为 Artifacts 名称（不包含路径）
       - name: Upload Artifacts
         uses: actions/upload-artifact@v3
         with:
-          name: ${{ needs.upload.outputs.artifact }}  # 使用前一步骤设置的输出作为文件名
-          path: ${{ needs.upload.outputs.artifact }}  # 使用前一步骤设置的输出作为路径
+          name: ${{ env.ARTIFACT_NAMES }}  # 使用不带路径的文件名
+          path: ${{ env.ARTIFACT_FILES }}  # 使用带路径的文件列表
           if-no-files-found: error
